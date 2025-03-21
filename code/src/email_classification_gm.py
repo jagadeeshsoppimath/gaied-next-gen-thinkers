@@ -9,8 +9,7 @@ import pytesseract
 from PIL import Image
 import docx
 import io
-
-
+from classification_prompt import classify_request_type
 
 def extract_plain_text(html_content):
     """Convert HTML email content to plain text."""
@@ -55,14 +54,15 @@ def process_attachment(part):
     return text
 
 from google import genai
+
+classification_data = classify_request_type()
 def classify_email(subject, body, attachment_text):
     client = genai.Client(api_key="AIzaSyBgD85PrdkN2M8bFQA0HYOreAFkc_Z-TSA")
     combined_text = f"Subject: {subject}\nBody: {body}\nAttachments: {attachment_text}"
     response = client.models.generate_content(
         model="gemini-2.0-flash", contents=f"""Read the content below and classify the content based on the given classifications. 
 
-    Classifications: [Access Request, Finance, HR Request, Vacation, IT Support Request, Travel Plan, Change Request, Engineering, Leave Request]
-
+    {classification_data}
     Also provide the confidence score for each classification.
 
     Content: Subject: {subject}\nBody: {body}\nAttachments: {attachment_text} Use this JSON schema for output: Information= {{'date': str, 'time': str, 'pnr': str, 'departure': str, 'arrival': str}}
@@ -115,7 +115,7 @@ for email_id in email_ids:
     print(f"📩 From: {sender}")
     print(f"📜 Message:\n{body}")
     print(f"📜 attachment_text:\n{attachment_text}")
-    print(f"🔍 Email Classified as: {classification}")
+    # print(f"🔍 Email Classified as: {classification}")
     print("-" * 50)
 
 # Close IMAP connection
